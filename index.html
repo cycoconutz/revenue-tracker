@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Local Revenue & Receipt Tracker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">L</span>
+    <div>
+      <h1>Ledger</h1>
+      <p class="tagline">Everything stays on this device.</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="btn-import-backup" class="ghost" title="Restore a JSON backup">Restore</button>
+    <button id="btn-export-backup" class="ghost" title="Download a JSON backup of all data">Backup</button>
+  </div>
+</header>
+
+<main>
+  <section class="summary" aria-label="Summary">
+    <div class="card revenue">
+      <span class="card-label">Total Revenue</span>
+      <span class="card-value" id="total-revenue">$0.00</span>
+    </div>
+    <div class="card expense">
+      <span class="card-label">Total Expenses</span>
+      <span class="card-value" id="total-expenses">$0.00</span>
+    </div>
+    <div class="card net">
+      <span class="card-label">Net</span>
+      <span class="card-value" id="total-net">$0.00</span>
+    </div>
+    <div class="card count">
+      <span class="card-label">Entries</span>
+      <span class="card-value" id="total-count">0</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Add data</h2>
+    </div>
+    <div class="add-grid">
+      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Upload CSV file">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <strong>Upload a CSV</strong>
+        <span>Click or drop a file — parsed locally, never uploaded</span>
+        <input type="file" id="csv-input" accept=".csv,text/csv,text/tab-separated-values" hidden>
+      </div>
+
+      <form id="expense-form" class="expense-form">
+        <h3>Add receipt / expense</h3>
+        <div class="field-row">
+          <label>Date
+            <input type="date" id="expense-date" required>
+          </label>
+          <label>Amount
+            <input type="number" id="expense-amount" step="0.01" min="0" placeholder="0.00" required>
+          </label>
+        </div>
+        <label>Description
+          <input type="text" id="expense-desc" placeholder="What was it for?" required>
+        </label>
+        <div class="field-row">
+          <label>Category
+            <select id="expense-category"></select>
+          </label>
+          <label>Label
+            <input type="text" id="expense-label" placeholder="e.g. quarterly">
+          </label>
+        </div>
+        <div class="field-row">
+          <label class="file-label">
+            Receipt image (optional)
+            <input type="file" id="expense-image" accept="image/*" class="file-input">
+            <span id="image-file-name" class="file-name"></span>
+          </label>
+        </div>
+        <button type="submit" class="primary">Add expense</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Ledger</h2>
+      <div class="filters">
+        <select id="filter-type" aria-label="Filter by type">
+          <option value="all">All</option>
+          <option value="revenue">Revenue only</option>
+          <option value="expense">Expenses only</option>
+        </select>
+        <select id="filter-category" aria-label="Filter by category"><option value="all">All categories</option></select>
+        <input type="search" id="filter-search" placeholder="Search description or label…" aria-label="Search">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="ledger-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Label</th>
+            <th>Source</th>
+            <th class="num">Amount</th>
+            <th>Receipt</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ledger-body"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state hidden">
+        No entries yet. Upload a CSV or add a receipt above.
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Uploaded files</h2>
+    </div>
+    <ul id="csv-list" class="csv-list"></ul>
+  </section>
+</main>
+
+<footer class="foot">
+  Data is stored only in this browser (IndexedDB). Images and files never leave your device.
+</footer>
+
+<!-- Column mapper modal -->
+<dialog id="mapper-modal">
+  <form method="dialog" class="modal-body">
+    <div class="modal-head">
+      <h3 id="mapper-title">Map CSV columns</h3>
+      <button type="button" class="close" id="mapper-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="hint" id="mapper-file"></p>
+    <div class="mapper-fields">
+      <label>Date column
+        <select id="map-date"></select>
+      </label>
+      <label>Description column
+        <select id="map-desc"></select>
+      </label>
+      <label>Amount (revenue) column
+        <select id="map-amount"></select>
+      </label>
+      <label>Category column <em>(optional)</em>
+        <select id="map-category"></select>
+      </label>
+    </div>
+    <div id="mapper-preview" class="preview"></div>
+    <div class="modal-actions">
+      <button type="button" class="ghost" id="mapper-cancel">Cancel</button>
+      <button type="button" class="primary" id="mapper-confirm">Import as revenue</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Receipt image lightbox -->
+<dialog id="lightbox">
+  <div class="lightbox-body">
+    <div class="modal-head">
+      <h3 id="lightbox-title">Receipt</h3>
+      <button type="button" class="close" id="lightbox-close" aria-label="Close">&times;</button>
+    </div>
+    <img id="lightbox-img" alt="Receipt image">
+  </div>
+</dialog>
+
+<!-- Confirm dialog -->
+<dialog id="confirm-modal">
+  <div class="modal-body">
+    <p id="confirm-text"></p>
+    <div class="modal-actions">
+      <button type="button" class="ghost" id="confirm-cancel">Cancel</button>
+      <button type="button" class="danger" id="confirm-ok">Delete</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
