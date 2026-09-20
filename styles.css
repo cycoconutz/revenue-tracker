@@ -13,6 +13,22 @@
   --radius: 12px;
 }
 
+html[data-bubbly='true'] {
+  color-scheme: light;
+  --bg: #ffe9f4;
+  --panel: #fff3fa;
+  --panel-2: #ffd9ec;
+  --border: #f0b6d4;
+  --text: #7a2449;
+  --muted: #ad6390;
+  --accent: #ff4d9d;
+  --accent-2: #ff6fae;
+  --green: #17b392;
+  --red: #ff5c8a;
+  --amber: #ffb35e;
+  --radius: 18px;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -56,6 +72,28 @@ input, select { font: inherit; }
 }
 
 .topbar-actions { display: flex; gap: 8px; }
+
+.bubbly-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: filter 0.15s, border-color 0.15s, background 0.3s, color 0.3s;
+}
+.bubbly-toggle:hover { border-color: var(--muted); }
+.bubble-heart { color: var(--accent); font-size: 14px; line-height: 1; }
+html[data-bubbly='true'] .bubbly-toggle {
+  background: linear-gradient(135deg, #ff4d9d, #ff87c7);
+  border-color: transparent;
+  color: #fff;
+}
+html[data-bubbly='true'] .bubbly-toggle .bubble-heart { color: #fff; }
 
 main {
   max-width: 1100px;
@@ -318,3 +356,91 @@ dialog::backdrop { background: rgba(4,6,10,0.72); }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: #2c3442; border-radius: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------------------------------------------------------- bubbly theme --- */
+
+html[data-bubbly='true'] .topbar {
+  background: linear-gradient(180deg, #ffd9ec, #ffe9f4);
+}
+
+html[data-bubbly='true'] .logo {
+  background: linear-gradient(135deg, #ff4d9d, #ff87c7);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px -6px rgba(255, 77, 157, 0.55);
+}
+
+html[data-bubbly='true'] .primary {
+  background: linear-gradient(135deg, #ff4d9d, #ff87c7);
+  border-color: transparent;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px -10px rgba(255, 77, 157, 0.6);
+}
+
+html[data-bubbly='true'] .ghost { border-radius: 999px; }
+
+html[data-bubbly='true'] input,
+html[data-bubbly='true'] select {
+  color-scheme: light;
+  border-radius: 12px;
+}
+
+html[data-bubbly='true'] .drop-zone { border-color: #e8aacb; }
+html[data-bubbly='true'] .drop-zone:hover,
+html[data-bubbly='true'] .drop-zone.dragover { border-color: var(--accent); background: #ffe3f1; }
+
+html[data-bubbly='true'] tbody td { border-bottom: 1px solid #f3c9de; }
+html[data-bubbly='true'] tbody tr:hover { background: #ffe3f1; }
+
+html[data-bubbly='true'] .badge.rev { border-color: #79d8c2; }
+html[data-bubbly='true'] .badge.exp { border-color: #ffbad0; }
+
+html[data-bubbly='true'] .row-del:hover { background: #ffd6e6; }
+
+html[data-bubbly='true'] .csv-list li { border-bottom: 1px solid #f3c9de; }
+
+html[data-bubbly='true'] .preview table th,
+html[data-bubbly='true'] .preview table td { border-right: 1px solid #f3c9de; }
+
+html[data-bubbly='true'] dialog { box-shadow: 0 24px 80px rgba(122, 36, 73, 0.35); }
+html[data-bubbly='true'] dialog::backdrop { background: rgba(122, 36, 73, 0.4); }
+
+html[data-bubbly='true'] ::-webkit-scrollbar-thumb { background: #f0a9d0; }
+
+html[data-bubbly='true'] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 16%, rgba(255, 111, 174, 0.22), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(255, 143, 199, 0.4), transparent 24%),
+    radial-gradient(circle at 78% 82%, rgba(255, 111, 174, 0.2), transparent 26%),
+    radial-gradient(circle at 18% 88%, rgba(255, 183, 220, 0.5), transparent 24%);
+}
+
+html[data-bubbly='true'] body::after {
+  content: "";
+  position: fixed;
+  bottom: -120px;
+  left: 30%;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 77, 157, 0.4);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.96) 0 12%, transparent 46%),
+    radial-gradient(circle at 68% 74%, #ffa1cf 0 22%, transparent 62%);
+  box-shadow: 0 10px 30px -8px rgba(255, 77, 157, 0.45),
+    inset -6px -10px 18px rgba(255, 77, 157, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  animation: bubbleRise 11s ease-in-out infinite;
+}
+
+@keyframes bubbleRise {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
+  12% { opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { transform: translateY(-115vh) translateX(46px) rotate(16deg); opacity: 0; }
+}

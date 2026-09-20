@@ -788,6 +788,32 @@ $("#btn-import-backup").addEventListener("click", () => {
   input.click();
 });
 
+/* ------------------------ Bubbly theme toggle ------------------------ */
+
+(function initBubbly() {
+  const root = document.documentElement;
+  const btn = document.getElementById("btn-bubbly");
+  const isOn = () => root.getAttribute("data-bubbly") === "true";
+  const apply = () => {
+    if (!btn) return;
+    btn.setAttribute("aria-pressed", String(isOn()));
+    const tag = btn.querySelector(".bubble-tag");
+    if (tag) tag.textContent = isOn() ? "Bubbly on" : "Bubbly";
+  };
+  apply();
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const next = !isOn();
+      if (next) root.setAttribute("data-bubbly", "true");
+      else root.removeAttribute("data-bubbly");
+      try {
+        localStorage.setItem("ledger-bubbly", next ? "1" : "0");
+      } catch {}
+      apply();
+    });
+  }
+})();
+
 /* --------------------------- Init --------------------------- */
 
 async function refreshFromDB() {

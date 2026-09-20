@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ledger — Local Revenue & Receipt Tracker</title>
 <link rel="stylesheet" href="styles.css">
+<script>
+  if (localStorage.getItem("ledger-bubbly") === "1") {
+    document.documentElement.setAttribute("data-bubbly", "true");
+  }
+</script>
 </head>
 <body>
 <header class="topbar">
@@ -16,6 +21,10 @@
     </div>
   </div>
   <div class="topbar-actions">
+    <button id="btn-bubbly" class="bubbly-toggle" aria-pressed="false" title="Switch to the bubbly theme">
+      <span class="bubble-tag">Bubbly</span>
+      <span class="bubble-heart" aria-hidden="true">♥</span>
+    </button>
     <button id="btn-import-backup" class="ghost" title="Restore a JSON backup">Restore</button>
     <button id="btn-export-backup" class="ghost" title="Download a JSON backup of all data">Backup</button>
   </div>
