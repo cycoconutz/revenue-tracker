@@ -186,7 +186,7 @@ async function deleteCsv(id) {
 let entries = [];
 let csvFiles = [];
 let categories = loadCategories();
-let filter = { type: "all", search: "", tags: [], cats: [] };
+let filter = { tags: [], cats: [] };
 const thumbUrls = {}; // entryId -> object URL
 
 function keepThumb(entry) {
@@ -203,14 +203,9 @@ function releaseAllThumbs() {
 }
 
 function getFilteredEntries() {
-  const q = filter.search.trim().toLowerCase();
   return entries
-    .filter((e) => filter.type === "all" || e.type === filter.type)
     .filter((e) => filter.cats.every((kw) => catMatch(e, kw)))
     .filter((e) => !filter.tags.length || (e.label && filter.tags.includes(e.label)))
-    .filter((e) =>
-      !q || (e.description || "").toLowerCase().includes(q) || (e.label || "").toLowerCase().includes(q)
-    )
     .sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.createdAt - a.createdAt);
 }
 
@@ -289,8 +284,7 @@ function renderSummary() {
   const filtered = getFilteredEntries();
   const filteredRev = filtered.filter((e) => e.type === "revenue").reduce((s, e) => s + e.amount, 0);
   $("#filtered-revenue").textContent = money(filteredRev);
-  const filterOn =
-    filter.type !== "all" || (filter.search || "").trim() !== "" || filter.tags.length > 0 || filter.cats.length > 0;
+  const filterOn = filter.tags.length > 0 || filter.cats.length > 0;
   $("#filtered-meta").textContent = filterOn
     ? `Filtering ${filtered.length} of ${entries.length} entries`
     : "All entries shown";
@@ -675,9 +669,6 @@ addCatBtn.addEventListener("click", promptForNewCategory);
 catWrap.appendChild(addCatBtn);
 
 /* ---------------------- Filtering --------------------------- */
-
-$("#filter-type").addEventListener("change", (e) => { filter.type = e.target.value; renderSummary(); renderTable(); });
-$("#filter-search").addEventListener("input", (e) => { filter.search = e.target.value; renderSummary(); renderTable(); });
 
 $("#tag-selector").addEventListener("click", (e) => {
   if (e.target.closest("[data-clear-tags]")) {
