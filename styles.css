@@ -164,6 +164,29 @@ main {
 }
 .tag-selector .tag-clear:hover { color: var(--text); border-color: var(--muted); }
 
+/* Category keyword panel */
+.cat-panel { flex-direction: column; gap: 10px; }
+.cat-add-form { display: flex; gap: 8px; }
+.cat-add-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+}
+.cat-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill-x {
+  margin-left: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0.55;
+  cursor: pointer;
+}
+.pill-x:hover { opacity: 1; }
+.tag-btn.active .pill-x { color: #fff; }
+
 /* Panels */
 .panel {
   background: var(--panel);

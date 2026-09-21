@@ -186,7 +186,7 @@ async function deleteCsv(id) {
 let entries = [];
 let csvFiles = [];
 let categories = loadCategories();
-let filter = { type: "all", category: "all", search: "", tags: [] };
+let filter = { type: "all", search: "", tags: [], cats: [] };
 const thumbUrls = {}; // entryId -> object URL
 
 function keepThumb(entry) {
@@ -206,12 +206,17 @@ function getFilteredEntries() {
   const q = filter.search.trim().toLowerCase();
   return entries
     .filter((e) => filter.type === "all" || e.type === filter.type)
-    .filter((e) => filter.category === "all" || e.category === filter.category)
+    .filter((e) => filter.cats.every((kw) => catMatch(e, kw)))
     .filter((e) => !filter.tags.length || (e.label && filter.tags.includes(e.label)))
     .filter((e) =>
       !q || (e.description || "").toLowerCase().includes(q) || (e.label || "").toLowerCase().includes(q)
     )
     .sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.createdAt - a.createdAt);
+}
+
+function catMatch(e, kw) {
+  const k = String(kw).toLowerCase();
+  return (e.category || "").toLowerCase() === k || (e.description || "").toLowerCase().includes(k);
 }
 
 /* ------------------------- Rendering ------------------------ */
@@ -220,6 +225,7 @@ async function renderAll() {
   renderSummary();
   renderCategories();
   renderTags();
+  renderCats();
   renderTable();
   renderCsvList();
 }
@@ -247,6 +253,30 @@ function renderTags() {
       .join("");
 }
 
+function renderCats() {
+  const wrap = $("#cat-selector");
+  if (!wrap) return;
+  filter.cats = filter.cats.filter((c) => categories.includes(c));
+  wrap.innerHTML =
+    (filter.cats.length ? `<button type="button" class="tag-clear" data-clear-cats>Clear</button>` : "") +
+    categories
+      .map((c) => {
+        const on = filter.cats.includes(c);
+        return `<button type="button" class="tag-btn${on ? " active" : ""}" data-cat="${escapeHTML(c)}">${escapeHTML(c)}<span class="pill-x" data-x="${escapeHTML(c)}">×</span></button>`;
+      })
+      .join("");
+}
+
+function deleteCategory(c) {
+  categories = categories.filter((x) => x !== c);
+  saveCategories(categories);
+  filter.cats = filter.cats.filter((x) => x !== c);
+  renderCategories();
+  renderCats();
+  renderSummary();
+  renderTable();
+}
+
 function renderSummary() {
   const rev = entries.filter((e) => e.type === "revenue").reduce((s, e) => s + e.amount, 0);
   const exp = entries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
@@ -260,7 +290,7 @@ function renderSummary() {
   const filteredRev = filtered.filter((e) => e.type === "revenue").reduce((s, e) => s + e.amount, 0);
   $("#filtered-revenue").textContent = money(filteredRev);
   const filterOn =
-    filter.type !== "all" || filter.category !== "all" || (filter.search || "").trim() !== "" || filter.tags.length > 0;
+    filter.type !== "all" || (filter.search || "").trim() !== "" || filter.tags.length > 0 || filter.cats.length > 0;
   $("#filtered-meta").textContent = filterOn
     ? `Filtering ${filtered.length} of ${entries.length} entries`
     : "All entries shown";
@@ -271,13 +301,6 @@ function renderCategories() {
   const current = sel.value;
   sel.innerHTML = categories.map((c) => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
   if (categories.includes(current)) sel.value = current;
-
-  const filterSel = $("#filter-category");
-  const fc = filterSel.value;
-  filterSel.innerHTML =
-    `<option value="all">All categories</option>` +
-    categories.map((c) => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
-  if (categories.includes(fc)) filterSel.value = fc;
 }
 
 function renderTable() {
@@ -654,7 +677,6 @@ catWrap.appendChild(addCatBtn);
 /* ---------------------- Filtering --------------------------- */
 
 $("#filter-type").addEventListener("change", (e) => { filter.type = e.target.value; renderSummary(); renderTable(); });
-$("#filter-category").addEventListener("change", (e) => { filter.category = e.target.value; renderSummary(); renderTable(); });
 $("#filter-search").addEventListener("input", (e) => { filter.search = e.target.value; renderSummary(); renderTable(); });
 
 $("#tag-selector").addEventListener("click", (e) => {
@@ -672,6 +694,44 @@ $("#tag-selector").addEventListener("click", (e) => {
     ? filter.tags.filter((t) => t !== tag)
     : [...filter.tags, tag];
   renderTags();
+  renderSummary();
+  renderTable();
+});
+
+$("#cat-add-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = $("#cat-add-input");
+  const v = input.value.trim();
+  if (!v) return;
+  if (!categories.includes(v)) {
+    categories.push(v);
+    saveCategories(categories);
+  }
+  if (!filter.cats.includes(v)) filter.cats.push(v);
+  input.value = "";
+  renderCategories();
+  renderCats();
+  renderSummary();
+  renderTable();
+});
+
+$("#cat-selector").addEventListener("click", (e) => {
+  const x = e.target.closest("[data-x]");
+  if (x) { deleteCategory(x.dataset.x); return; }
+  if (e.target.closest("[data-clear-cats]")) {
+    filter.cats = [];
+    renderCats();
+    renderSummary();
+    renderTable();
+    return;
+  }
+  const btn = e.target.closest("[data-cat]");
+  if (!btn) return;
+  const c = btn.dataset.cat;
+  filter.cats = filter.cats.includes(c)
+    ? filter.cats.filter((x) => x !== c)
+    : [...filter.cats, c];
+  renderCats();
   renderSummary();
   renderTable();
 });

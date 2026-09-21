@@ -113,11 +113,17 @@
           <option value="revenue">Revenue only</option>
           <option value="expense">Expenses only</option>
         </select>
-        <select id="filter-category" aria-label="Filter by category"><option value="all">All categories</option></select>
         <input type="search" id="filter-search" placeholder="Search description or label…" aria-label="Search">
       </div>
     </div>
     <div id="tag-selector" class="tag-selector hidden" aria-label="Filter by tags"></div>
+    <div id="category-panel" class="tag-selector cat-panel" aria-label="Categories">
+      <form id="cat-add-form" class="cat-add-form">
+        <input type="text" id="cat-add-input" placeholder="Add a category keyword…" aria-label="Add category">
+        <button type="submit" class="tag-btn">Add</button>
+      </form>
+      <div id="cat-selector" class="cat-pills"></div>
+    </div>
     <div class="table-wrap">
       <table id="ledger-table">
         <thead>
