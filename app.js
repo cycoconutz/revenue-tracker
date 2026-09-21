@@ -186,7 +186,7 @@ async function deleteCsv(id) {
 let entries = [];
 let csvFiles = [];
 let categories = loadCategories();
-let filter = { type: "all", category: "all", search: "" };
+let filter = { type: "all", category: "all", search: "", tags: [] };
 const thumbUrls = {}; // entryId -> object URL
 
 function keepThumb(entry) {
@@ -207,6 +207,7 @@ function getFilteredEntries() {
   return entries
     .filter((e) => filter.type === "all" || e.type === filter.type)
     .filter((e) => filter.category === "all" || e.category === filter.category)
+    .filter((e) => !filter.tags.length || (e.label && filter.tags.includes(e.label)))
     .filter((e) =>
       !q || (e.description || "").toLowerCase().includes(q) || (e.label || "").toLowerCase().includes(q)
     )
@@ -218,8 +219,32 @@ function getFilteredEntries() {
 async function renderAll() {
   renderSummary();
   renderCategories();
+  renderTags();
   renderTable();
   renderCsvList();
+}
+
+function tagsFromEntries() {
+  return [...new Set(entries.map((e) => e.label).filter((l) => l && String(l).trim() !== ""))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+}
+
+function renderTags() {
+  const wrap = $("#tag-selector");
+  if (!wrap) return;
+  const tags = tagsFromEntries();
+  filter.tags = filter.tags.filter((t) => tags.includes(t));
+  if (!tags.length) { wrap.classList.add("hidden"); return; }
+  wrap.classList.remove("hidden");
+  wrap.innerHTML =
+    (filter.tags.length ? `<button type="button" class="tag-clear" data-clear-tags>Clear tags</button>` : "") +
+    tags
+      .map((tag) => {
+        const on = filter.tags.includes(tag);
+        return `<button type="button" class="tag-btn${on ? " active" : ""}" data-tag="${escapeHTML(tag)}">${escapeHTML(tag)}</button>`;
+      })
+      .join("");
 }
 
 function renderSummary() {
@@ -230,6 +255,15 @@ function renderSummary() {
   $("#total-net").textContent = money(rev - exp);
   $("#total-net").classList.toggle("card", true);
   $("#total-count").textContent = entries.length;
+
+  const filtered = getFilteredEntries();
+  const filteredRev = filtered.filter((e) => e.type === "revenue").reduce((s, e) => s + e.amount, 0);
+  $("#filtered-revenue").textContent = money(filteredRev);
+  const filterOn =
+    filter.type !== "all" || filter.category !== "all" || (filter.search || "").trim() !== "" || filter.tags.length > 0;
+  $("#filtered-meta").textContent = filterOn
+    ? `Filtering ${filtered.length} of ${entries.length} entries`
+    : "All entries shown";
 }
 
 function renderCategories() {
@@ -619,9 +653,28 @@ catWrap.appendChild(addCatBtn);
 
 /* ---------------------- Filtering --------------------------- */
 
-$("#filter-type").addEventListener("change", (e) => { filter.type = e.target.value; renderTable(); });
-$("#filter-category").addEventListener("change", (e) => { filter.category = e.target.value; renderTable(); });
-$("#filter-search").addEventListener("input", (e) => { filter.search = e.target.value; renderTable(); });
+$("#filter-type").addEventListener("change", (e) => { filter.type = e.target.value; renderSummary(); renderTable(); });
+$("#filter-category").addEventListener("change", (e) => { filter.category = e.target.value; renderSummary(); renderTable(); });
+$("#filter-search").addEventListener("input", (e) => { filter.search = e.target.value; renderSummary(); renderTable(); });
+
+$("#tag-selector").addEventListener("click", (e) => {
+  if (e.target.closest("[data-clear-tags]")) {
+    filter.tags = [];
+    renderTags();
+    renderSummary();
+    renderTable();
+    return;
+  }
+  const btn = e.target.closest("[data-tag]");
+  if (!btn) return;
+  const tag = btn.dataset.tag;
+  filter.tags = filter.tags.includes(tag)
+    ? filter.tags.filter((t) => t !== tag)
+    : [...filter.tags, tag];
+  renderTags();
+  renderSummary();
+  renderTable();
+});
 
 /* ------------------ Deletions & lightbox -------------------- */
 

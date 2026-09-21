@@ -48,6 +48,11 @@
       <span class="card-label">Entries</span>
       <span class="card-value" id="total-count">0</span>
     </div>
+    <div class="card filtered">
+      <span class="card-label">Filtered Revenue</span>
+      <span class="card-value" id="filtered-revenue">$0.00</span>
+      <span class="card-sub" id="filtered-meta"></span>
+    </div>
   </section>
 
   <section class="panel">
@@ -112,6 +117,7 @@
         <input type="search" id="filter-search" placeholder="Search description or label…" aria-label="Search">
       </div>
     </div>
+    <div id="tag-selector" class="tag-selector hidden" aria-label="Filter by tags"></div>
     <div class="table-wrap">
       <table id="ledger-table">
         <thead>
